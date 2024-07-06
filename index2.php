@@ -53,11 +53,53 @@ function sendToken($privateKey, $to, $amount, $tokenID) {
     return json_decode($response->getBody(), true);
 }
 
-//$wallet = generateWallet();
-//print_r($wallet);
+function getTransactionHistory($address) {
+    $client = new Client();
+    $response = $client->get("https://toncenter.com/api/v2/getTransactions", [
+        'query' => ['address' => $address]
+    ]);
+    $data = json_decode($response->getBody(), true);
+    return $data;
+}
 
-//$address = $wallet['address'];
-$address = "765d9aaa3b2d957c084b6c9d341a8dbc";
+function estimateFee($privateKey, $to, $amount) {
+    $client = new Client();
+    $response = $client->post('https://toncenter.com/api/v2/estimateFee', [
+        'json' => [
+            'privateKey' => $privateKey,
+            'to' => $to,
+            'amount' => $amount,
+        ]
+    ]);
+    return json_decode($response->getBody(), true);
+}
+
+function waitForTransactionConfirmation($address, $seqno) {
+    $client = new Client();
+    $currentSeqno = $seqno;
+    while ($currentSeqno == $seqno) {
+        echo "Waiting for transaction to confirm...\n";
+        sleep(1.5);
+        $response = $client->get("https://toncenter.com/api/v2/getAddressInformation", [
+            'query' => ['address' => $address]
+        ]);
+        $data = json_decode($response->getBody(), true);
+        $currentSeqno = $data['result']['seqno'];
+    }
+    echo "Transaction confirmed!\n";
+}
+
+
+$wallet = generateWallet();
+print_r($wallet);
+
+$address = $wallet['address'];
+$privateKey = $wallet['private_key'];
+$publicKey = $wallet['public_key'];
+$to = "765d9aaa3b2d957c084b6c9d341a8dbc";
+$amount = 1;
+//$address = "765d9aaa3b2d957c084b6c9d341a8dbc";
+
 $balance = getWalletBalance($address);
 print_r($balance);
 
@@ -72,3 +114,15 @@ print_r($balance);
 // $amount = 100;
 // $transaction = sendToken($privateKey, $to, $amount, $tokenID);
 // print_r($transaction);
+
+$history = getTransactionHistory($address);
+print_r($history);
+
+
+//$fee = estimateFee($privateKey, $to, $amount);
+//print_r($fee);
+
+
+//$seqno = 123; // Replace with actual sequence number
+//waitForTransactionConfirmation($address, $seqno);
+?>
