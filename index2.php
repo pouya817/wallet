@@ -1,6 +1,11 @@
 <?php
 require 'vendor/autoload.php';
 
+use Olifanton\Mnemonic\Exceptions\TonMnemonicException;
+use Olifanton\Mnemonic\TonMnemonic;
+use Olifanton\Mnemonic\Wordlist\Bip39English;
+use Olifanton\Interop\Bytes;
+
 use phpseclib3\Crypt\EC;
 use GuzzleHttp\Client;
 
@@ -88,7 +93,12 @@ function waitForTransactionConfirmation($address, $seqno) {
     }
     echo "Transaction confirmed!\n";
 }
-
+function generate(): void
+{
+    $randWord = Bip39English::WORDS[array_rand(Bip39English::WORDS)];
+    $mnemonic = TonMnemonic::generate($randWord);
+    print_r($mnemonic);
+}
 
 $wallet = generateWallet();
 print_r($wallet);
@@ -102,6 +112,9 @@ $amount = 1;
 
 $balance = getWalletBalance($address);
 print_r($balance);
+
+$phrase = generate();
+print_r($phrase);
 
 // $privateKey = $wallet['private_key'];
 // $to = 'RECEIVER_TON_ADDRESS';
@@ -125,4 +138,6 @@ print_r($history);
 
 //$seqno = 123; // Replace with actual sequence number
 //waitForTransactionConfirmation($address, $seqno);
+
+
 ?>
