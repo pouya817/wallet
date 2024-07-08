@@ -1,10 +1,9 @@
 <?php
 require 'vendor/autoload.php';
 
-use Olifanton\Mnemonic\Exceptions\TonMnemonicException;
+
 use Olifanton\Mnemonic\TonMnemonic;
 use Olifanton\Mnemonic\Wordlist\Bip39English;
-use Olifanton\Interop\Bytes;
 use OTPHP\TOTP;
 
 use phpseclib3\Crypt\EC;
