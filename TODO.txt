@@ -1,5 +1,6 @@
 //TODO: 1st create 12 phrase
-//TODO: 2st change in getbalance function to show a specific coin
-//TODO: 3st history
-//TODO: 4st fee
-//TODO: 5st waiting for transaction for confirm
+//TODO: 2st change in Get balance function to show a specific coin
+//TODO: 3st history 👍
+//TODO: 4st fee 👍
+//TODO: 5st waiting for transaction for confirm 👍
+//TODO: 6st add 2-step verify 👍
