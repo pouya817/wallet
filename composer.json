@@ -2,6 +2,8 @@
   "require": {
     "phpseclib/phpseclib": "^3.0",
     "guzzlehttp/guzzle": "^7.0",
-    "olifanton/mnemonic": "^1.0"
+    "olifanton/mnemonic": "^1.0",
+    "spomky-labs/otphp": "^11.3",
+    "endroid/qrcode": "^5.0"
   }
 }
