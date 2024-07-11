@@ -5,7 +5,6 @@ require 'vendor/autoload.php';
 use Olifanton\Mnemonic\TonMnemonic;
 use Olifanton\Mnemonic\Wordlist\Bip39English;
 use OTPHP\TOTP;
-
 use phpseclib3\Crypt\EC;
 use GuzzleHttp\Client;
 
@@ -108,7 +107,7 @@ function waitForTransactionConfirmation($address, $seqno) {
 function generate(): void
 {
     $randWord = Bip39English::WORDS[array_rand(Bip39English::WORDS)];
-    $mnemonic = TonMnemonic::generate($randWord);
+    $mnemonic = TonMnemonic::generate($randWord,12);
     print_r($mnemonic);
 }
 
