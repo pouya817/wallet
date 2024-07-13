@@ -1,35 +1,96 @@
 <?php
 require 'vendor/autoload.php';
 
-use OTPHP\TOTP;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
+use ParagonIE\ConstantTime\Base64UrlSafe;
+use GuzzleHttp\Client;
 
-function generateSecretForUser($username) {
-    $totp = TOTP::generate();
-    $totp->setLabel($username);
-    $secret = $totp->getSecret();
+// List of BIP-39 words (English)
+$bip39_wordlist = [
+    "broken", "decade", "unit", "bird", "enrich", "great", "nurse", "offer", "rescue",
+    "sound", "pole", "true", "dignity", "buyer", "provide", "boil", "connect", "universe",
+    "model", "add", "obtain", "hire", "gift", "swim",
+    // Add the rest of the BIP-39 wordlist here...
+];
 
-    $totp = TOTP::createFromSecret($secret);
-    echo "The current OTP is: {$totp->now()}\n";
-//    // Generate QR code
-//    $qrCode = QrCode::create($totp->getProvisioningUri());
-//    $writer = new PngWriter();
-//    $result = $writer->write($qrCode);
-//
-//    // Save the secret key in your database
-//    // saveSecretKeyToDatabase($username, $secret);
-//
-//    // Display the QR code
-//    header('Content-Type: '.$result->getMimeType());
-//    echo $result->getString();
-//
-//    // Return the secret for further use if needed
-    return $secret;
+// Function to generate a random BIP-39 mnemonic
+function generateRandomMnemonic(array $wordlist, int $num_words = 12): string {
+    $mnemonic = [];
+    $wordlist_length = count($wordlist);
+
+    for ($i = 0; $i < $num_words; $i++) {
+        $index = random_int(0, $wordlist_length - 1);
+        $mnemonic[] = $wordlist[$index];
+    }
+
+    return implode(' ', $mnemonic);
 }
 
-// Example usage during user registration
-$username = 'example_user';
-$secret = generateSecretForUser($username);
-echo "Save this secret securely: " . $secret;
-?>
+// Function to generate seed phrase from mnemonics
+function generateSeedPhrase(array $mnemonics): string {
+    return implode(' ', $mnemonics);
+}
+
+// Function to convert mnemonics to private key
+function mnemonicsToPrivateKey(array $mnemonics): string {
+    $mnemonics_str = generateSeedPhrase($mnemonics);
+    $seed = hash('sha256', $mnemonics_str, true);
+    return Base64UrlSafe::encode($seed);
+}
+
+// Function to convert mnemonics to public key
+function mnemonicsToPublicKey(array $mnemonics): string {
+    $mnemonics_str = generateSeedPhrase($mnemonics);
+    $seed = hash('sha256', $mnemonics_str, true);
+    return Base64UrlSafe::encode(hash('sha256', $seed, true));
+}
+
+// Function to send keys to Ton Blockchain
+function sendToTonBlockchain(string $mnemonic, string $priv_k, string $pub_k) {
+    $client = new Client(['base_uri' => 'https://tonapi.io/v1/']); // Update with the correct Ton API URL
+
+    // Create BOC message
+    $message = [
+        'mnemonic' => $mnemonic,
+        'privateKey' => $priv_k,
+        'publicKey' => $pub_k
+    ];
+
+    // Convert message to BOC format (assuming you have a method to convert to BOC)
+    // Here we simulate converting to BOC. You should implement the actual conversion.
+    $bocMessage = base64_encode(json_encode($message)); // Placeholder for BOC conversion
+
+    // Send request to the API
+    $response = $client->post('wallets', [
+        'json' => [
+            'boc' => $bocMessage // Send BOC formatted message
+        ]
+    ]);
+
+    $responseBody = json_decode($response->getBody(), true);
+
+    if ($response->getStatusCode() === 200) {
+        echo "Keys sent successfully: " . print_r($responseBody, true) . "\n";
+    } else {
+        echo "Error sending keys: " . $responseBody['error'] . "\n";
+    }
+}
+
+// Generate a random 12-word mnemonic phrase using BIP-39 wordlist
+$mnemonic = generateRandomMnemonic($bip39_wordlist);
+
+// Convert mnemonic to mnemonics array
+$mnemonics = explode(' ', $mnemonic);
+
+// Generate private key, public key, and seed phrase
+$priv_k = mnemonicsToPrivateKey($mnemonics);
+$pub_k = mnemonicsToPublicKey($mnemonics);
+$seed_phrase = generateSeedPhrase($mnemonics);
+
+// Output the results
+echo "Generated Mnemonic: $mnemonic\n";
+echo "Private Key: $priv_k\n";
+echo "Public Key: $pub_k\n";
+echo "Seed Phrase: $seed_phrase\n";
+
+// Send keys to Ton Blockchain
+sendToTonBlockchain($mnemonic, $priv_k, $pub_k);
