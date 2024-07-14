@@ -111,7 +111,7 @@ function generate(): void
     print_r($mnemonic);
 }
 
-//$wallet = generateWallet();
+$wallet = generateWallet();
 //print_r($wallet);
 //
 //$address = $wallet['address'];
