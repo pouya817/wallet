@@ -90,7 +90,7 @@ class TonBlockchainClient {
         }
     }
 
-    public function sendTon($privateKey, $to, $amount) {
+    public function sendToken($privateKey, $to, $amount) {
         $response = $this->client->post('sendTransaction', [
             'json' => [
                 'privateKey' => $privateKey,
@@ -126,6 +126,7 @@ class TonBlockchainClient {
             'walletAddress' => $walletAddress,
         ];
         $response = $this->client->post('importToken', ['json' => $data]);
+
         return json_decode($response->getBody(), true);
     }
 
@@ -146,18 +147,20 @@ class TonBlockchainClient {
         $mnemonicGenerator = new MnemonicGenerator([]);
         $privateKey = $mnemonicGenerator->mnemonicsToPrivateKey($mnemonics);
         $publicKey = $mnemonicGenerator->mnemonicsToPublicKey($mnemonics);
+        $address = $mnemonicGenerator->publicKeyToAddress($publicKey);
 
         // Get wallet balance
-        $balanceResponse = $this->getWalletBalance($publicKey);
+        $balanceResponse = $this->getWalletBalance($address);
         $balance = $balanceResponse['result'];
 
         // Get transaction history
-        $historyResponse = $this->getTransactionHistory($publicKey);
+        $historyResponse = $this->getTransactionHistory($address);
         $history = $historyResponse['result'];
 
         return [
             'privateKey' => $privateKey,
             'publicKey' => $publicKey,
+            'address' => $address,
             'balance' => $balance,
             'transactionHistory' => $history
         ];
@@ -181,7 +184,9 @@ class TonBlockchainClient {
     public function signUp(): array {
         $mnemonicGenerator = new MnemonicGenerator([
             "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse", "access", "accident",
-            // Add the rest of the BIP-39 wordlist here...
+            "broken", "decade", "unit", "bird", "enrich", "great", "nurse", "offer", "rescue",
+            "sound", "pole", "true", "dignity", "buyer", "provide", "boil", "connect", "universe",
+            "model", "add", "obtain", "hire", "gift", "swim",
         ]);
 
         $mnemonic = $mnemonicGenerator->generateRandomMnemonic();
@@ -204,8 +209,14 @@ class TonBlockchainClient {
 // Example usage
 $client = new TonBlockchainClient();
 $signUpData = $client->signUp();
-print_r($signUpData);
+//print_r($signUpData);
+//
+//// Check wallet balance
+//$balanceData = $client->getWalletBalance($signUpData['address']);
+//print_r($balanceData);
 
-// Check wallet balance
-$balanceData = $client->getWalletBalance($signUpData['address']);
-print_r($balanceData);
+//$data = $client->signIn("provide rescue universe offer able connect true unit nurse able unit hire");
+$import = $client->importTonToken("YDJPUxpQD7AcICkaM8BivRE1jAOnH5xIfp6pG6vFO1Y","EQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T6bO","da5dcb35a3ab226158826c86b9ded2a3");
+print_r($import);
+//$data = $client->callSmartContractFunction('YDJPUxpQD7AcICkaM8BivRE1jAOnH5xIfp6pG6vFO1Y', '0x0027449Bf0887ca3E431D263FFDeFb244D95b555', '0x0027449bf0887ca3e431d263ffdefb244d95b555','NotCoin');
+//print_r($data);
